@@ -1,20 +1,17 @@
-﻿// Template generated code from Antlr4BuildTasks.Template v 8.17
+﻿using System.Collections.Generic;
+using System.IO;
+using Antlr4.Runtime;
 
 namespace JsonHtml {
-    using Antlr4.Runtime;
-    using Antlr4.Runtime.Misc;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
+    public class ErrorListener<S> : ConsoleErrorListener<S>{
+        public bool HadError;
+        private readonly List<string> _errors = new();
 
-    public class ErrorListener<S> : ConsoleErrorListener<S> {
-        public bool had_error;
-
+        public string Errors => string.Join("\n", _errors);
         public override void SyntaxError(TextWriter output, IRecognizer recognizer, S offendingSymbol, int line,
             int col, string msg, RecognitionException e) {
-            had_error = true;
-            base.SyntaxError(output, recognizer, offendingSymbol, line, col, msg, e);
+            HadError = true;
+            _errors.Add($"Syntax error: did not expect '{e.OffendingToken.Text}' at line {line}:{col}, {msg}");
         }
     }
 }

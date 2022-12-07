@@ -1,44 +1,70 @@
 ﻿// Template generated code from Antlr4BuildTasks.Template v 8.17
 
-namespace JsonHtml {
-    using Antlr4.Runtime;
-    using System.Text;
+using System;
+using Antlr4.Runtime;
+using JsonHtml;
 
-    public class Program {
-        static void Main(string[] args) {
-            Try("""
-            :root {
-                head {        
-                   "";
-               }
-               body {
-                    " ma baddy";
-               }
-            }
-            """
-            );
-        }
-
-        static void Try(string input) {
-            var str = new AntlrInputStream(input);
-            System.Console.WriteLine(input);
-            var lexer = new JsonHtmlLexer(str);
-            var tokens = new CommonTokenStream(lexer);
-            var parser = new JsonHtmlParser(tokens);
-            var listener_lexer = new ErrorListener<int>();
-            var listener_parser = new ErrorListener<IToken>();
-            lexer.AddErrorListener(listener_lexer);
-            parser.AddErrorListener(listener_parser);
-            var tree = parser.root();
-            if (listener_lexer.had_error || listener_parser.had_error)
-                System.Console.WriteLine("error in parse.");
-            else
-                System.Console.WriteLine("parse completed.");
-        }
-
-        static string ReadAllInput(string fn) {
-            var input = System.IO.File.ReadAllText(fn);
-            return input;
-        }
+void Try(string input) {
+    var str = new AntlrInputStream(input);
+    // lex
+    var lexer = new JsonHtmlLexer(str);
+    lexer.RemoveErrorListener(ConsoleErrorListener<int>.Instance);
+    var listenerLexer = new ErrorListener<int>();
+    lexer.AddErrorListener(listenerLexer);
+    var tokens = new CommonTokenStream(lexer);
+    
+    // parse
+    var parser = new JsonHtmlParser(tokens);
+    parser.RemoveErrorListener(ConsoleErrorListener<IToken>.Instance);
+    var listenerParser = new ErrorListener<IToken>();
+    parser.AddErrorListener(listenerParser);
+    var tree = parser.root();
+    
+    // build html
+    var builder = new HtmlBuilder();
+    
+    if (listenerLexer.HadError)
+        Console.WriteLine(listenerLexer.Errors);
+    else if(listenerParser.HadError)
+        Console.WriteLine(listenerParser.Errors);
+    else {
+        Console.WriteLine("parse completed.");
+        Console.WriteLine(builder.Visit(tree));
     }
 }
+
+Try(""" 
+    :root {
+        head {        
+           style: {"
+                #myId {
+                    font-color: red; 
+                }
+                
+                h1 {
+                    background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);   -webkit-background-clip: text; 
+                    color: transparent; 
+                }
+           "}
+       }
+       body#myId.myClass1.my-class-2[class="test more classes"] {
+            h1 {"Beautiful webpage"}
+            p {"This is a paragraph"}
+            ul {
+                li {"This"}
+                li {"is"}
+                li {"an"}
+                li {"unordered"}
+                li {"list"}
+            }
+            a[href="https://www.google.com/"]{"google.com"}
+            p {" 
+            This paragraph
+            
+            Has some line 
+            breaks
+            "}
+       }
+    }
+    """
+);
